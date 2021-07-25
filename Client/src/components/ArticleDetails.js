@@ -14,11 +14,49 @@ const ArticleDetails = (props) => {
 
     const GetArticle = () => {
         axios.get("http://64.225.73.88:9078/articles/" + id).then(succ => {
-            console.log(succ.data);
+
+
+            let newArr = [];    // מערך חדש למיון מערך התגובות
+
+
+            // מעבר על כל מערך התגובות
+            succ.data.comments.forEach(element => {
+                if (element.response_to_comment_id == null) {
+
+                    //  למערך החדש null הוספת כל איבר שלא שווה ל 
+                    newArr.push(element);
+
+                    //לפונקציה רקורסיבית null שליחת כל איבר שלא שווה ל 
+                    SortComments(succ.data.comments, element.id, newArr);
+                }
+            });
+            // עדכון מערך התגובות למערך ממוין
+            succ.data.comments = newArr;
+
             setArticle(succ.data);
+
         }).catch(ee => {
             console.log(ee.massege);
         });
+    }
+
+
+    // פונקצית מייון רקורסיבית
+    const SortComments = (arr, num, newArr) => {
+
+        //num - שליפת כל התגובות הקשורות לתגובה מסויימת
+        let arrFilter = arr.filter((a) => a.response_to_comment_id == num);
+
+        // =========(מעבר על כל מערך התגובות במידה והמערך לא ריק ====================(טענת היציאה
+        if (arrFilter.length != 0)
+            arrFilter.forEach(element => {
+
+                // דחיפת כל איבר למערך החדש
+                newArr.push(element);
+
+                // שליחת כל איבר לפעולה רקורסיבית
+                SortComments(arr, element.id, newArr);
+            });
     }
 
     const scrollTop = () => {
@@ -34,6 +72,7 @@ const ArticleDetails = (props) => {
 
         //props שליפה של המאמר הנוכחי לפי הקוד הנשלח ב 
         GetArticle();
+
     }, [])
 
 
